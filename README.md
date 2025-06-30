@@ -4,7 +4,7 @@
 [![Tutorial](https://img.shields.io/badge/Step--by--Step%20Tutorial-PDF%20Guide-blue)](docs/Step-by-Step.pdf)
 
 <p align="center">
-  <img src="docs/logo.jpg" alt="WQEye Logo" width="250" style="vertical-align:middle;">
+  <img src="docs/logo.jpg" alt="WQEye Logo" width="400" style="vertical-align:middle;">
 </p>
 
 # WQEye: A Python-based Software Aided by Google Earth Engine for Machine Learning-based Retrieval of Water Quality Parameters from Sentinel-2 and Landsat-8/9 Remote Sensing Data
