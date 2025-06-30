@@ -1,0 +1,13 @@
+streamlit==1.45.1
+geemap==0.35.3
+pandas==2.2.3
+scikit-learn==1.7.0
+matplotlib==3.10.3
+plotly==6.1.1
+openpyxl==3.1.5
+python-decouple==3.8
+streamlit-option-menu==0.4.0
+streamlit_folium==0.25.0
+streamlit-aggrid==1.1.4.post1
+tensorflow==2.19.0
+git+https://github.com/Blealtan/efficient-kan.git
