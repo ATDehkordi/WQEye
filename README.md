@@ -30,7 +30,7 @@ We gratefully acknowledge the entire open-source community that made the develop
 
 ---------------------------------------------------------------------------------------------
 
-## 👨‍💻 Development Team and Contact
+### 👨‍💻 Development Team and Contact
 
 - **Alireza Taheri Dehkordi** — Lund University, Lund, Sweden.
 - **Mostafa Dazi** — K. N. Toosi Univeristy of Technology, Tehran, Iran. 
