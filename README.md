@@ -1,10 +1,7 @@
 # WQEye
 
-![Python Version](https://img.shields.io/badge/Python-3.12%2B-blue.svg)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-brightgreen)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Status](https://img.shields.io/badge/Status-Stable-success)
-![GEE Required](https://img.shields.io/badge/RS%20Sampling-GEE%20Required-orange)
+[![Tutorial](https://img.shields.io/badge/Step--by--Step%20Tutorial-Click%20Here-blue)](docs/tutorial.md)
+[![Installation](https://img.shields.io/badge/Installation-Guide-green)](docs/installation.md)
 
 ## 1. System Requirements and Compatibility
 
