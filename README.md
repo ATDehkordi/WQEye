@@ -1,6 +1,6 @@
 # WQEye
 
-[![System Requirements](https://img.shields.io/badge/System%20Requirements-PDF%20Guide-lightgrey)](docs/system-requirements.pdf)
+[![System Requirements](https://img.shields.io/badge/System%20Requirements-PDF%20Guide-lightgrey)](docs/SystemRequirements.pdf)
 [![Installation](https://img.shields.io/badge/Installation-PDF%20Guide-green)](docs/Installation.pdf)
 [![Tutorial](https://img.shields.io/badge/Step--by--Step%20Tutorial-PDF%20Guide-blue)](docs/Step-by-Step.pdf)
 
