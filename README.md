@@ -10,7 +10,7 @@
 
 # WQEye: A Python-based Software Aided by Google Earth Engine for Machine Learning-based Retrieval of Water Quality Parameters from Sentinel-2 and Landsat-8/9 Remote Sensing Data
 
-## 1. Software Documentation
+**1. Software Documentation**
 
 💻 **System Requirements** are fully described [here](docs/SystemRequirements.pdf).
 
