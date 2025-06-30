@@ -4,7 +4,7 @@
 [![Tutorial](https://img.shields.io/badge/Step--by--Step%20Tutorial-PDF%20Guide-blue)](docs/Step-by-Step.pdf)
 
 <p align="left">
-  <img src="docs/logo.jpg" alt="WQEye Logo" width="50" style="vertical-align:middle;">
+  <img src="docs/logo.jpg" alt="WQEye Logo" width="150" style="vertical-align:middle;">
   <strong>WQEye</strong>
 </p>
 
