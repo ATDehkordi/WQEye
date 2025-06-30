@@ -20,6 +20,13 @@
 
 ---------------------------------------------------------------------------------------------
 
+### 📁 Getting Started with Sample Data
+
+A small sample dataset is included with this repository ([here](example/SampleData_Turb_2stations.csv)) to help you get started with **WQEye**. 
+This dataset allows you to run the software, test its functionalities, and follow the tutorial, even if you don't have your own data yet.
+
+---------------------------------------------------------------------------------------------
+
 ### 👨‍💻 Development Team and Contact
 
 - **Alireza Taheri Dehkordi** — Lund University, Lund, Sweden.
