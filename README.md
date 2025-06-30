@@ -20,6 +20,15 @@
 
 ---------------------------------------------------------------------------------------------
 
+### 👨‍💻 Development Team and Contact
+
+- **Alireza Taheri Dehkordi** — Lund University, Lund, Sweden.
+- **Mostafa Dazi** — K. N. Toosi Univeristy of Technology, Tehran, Iran. 
+
+📧 For questions or inquiries, please contact: [alireza.taheri_dehkordi@tvrl.lth.se] and [mostafa.dazi@email.kntu.ac.ir]
+
+---------------------------------------------------------------------------------------------
+
 ### 🙏 Acknowledgements
 
 We gratefully acknowledge the entire open-source community that made the development of **WQEye** possible. Specific thanks to the following tools:
@@ -27,12 +36,3 @@ We gratefully acknowledge the entire open-source community that made the develop
 - 🖥️ **[Streamlit](https://streamlit.io/)** — for building interactive web applications.  
 - 🧠 **[efficient Kolmogorov–Arnold Network (KAN)](https://github.com/Blealtan/efficient-kan)** — for enhancing WQEye's machine learning capabilities.  
 - 🌍 **[geemap](https://geemap.org/)** — for accessing and interacting with **Google Earth Engine**.
-
----------------------------------------------------------------------------------------------
-
-### 👨‍💻 Development Team and Contact
-
-- **Alireza Taheri Dehkordi** — Lund University, Lund, Sweden.
-- **Mostafa Dazi** — K. N. Toosi Univeristy of Technology, Tehran, Iran. 
-
-📧 For questions or inquiries, please contact: [alireza.taheri_dehkordi@tvrl.lth.se] and [mostafa.dazi@email.kntu.ac.ir]
