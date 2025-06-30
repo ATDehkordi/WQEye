@@ -1,0 +1,10 @@
+/* messages.css */
+div[data-testid="stFoliumMap"] {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+div[data-testid="stVerticalBlock"] > div:has(.dataframe-section) {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}

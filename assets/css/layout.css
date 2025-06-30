@@ -1,0 +1,17 @@
+.block-container {
+    padding-top: 50px !important;
+}
+
+.dataframe-section {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+div[data-testid="stVerticalBlock"] > div {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+div.dataframe-section {
+    margin-top: -30px;
+}

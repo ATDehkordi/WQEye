@@ -1,0 +1,43 @@
+/* assets/custom.css */
+
+/* Styling for tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 20px !important;
+}
+
+.stTabs [data-baseweb="tab"] {
+    height: 10px !important;
+    line-height: 30px !important;
+    font-size: 14px !important;
+    padding: 10px 10px !important;
+    margin: 10px !important;
+}
+
+/* Reduce padding-top for main container */
+.block-container {
+    padding-top: 50px !important;
+}
+
+/* Styling for right sidebar */
+.right-sidebar {
+    background-color: #f8f9fa;
+    overflow-y: auto;
+    max-height: 80vh;
+    padding: 0px;
+}
+
+/* Reduce margin between map and dataframe */
+.dataframe-section {
+    margin-top: 0px !important;
+}
+
+/* Reduce margin and padding for success message */
+.stSuccess {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Reduce spacing after map */
+div[data-testid="stVerticalBlock"] > div {
+    margin-bottom: 0 !important;
+}
