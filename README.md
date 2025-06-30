@@ -9,5 +9,5 @@
 
 For installation instructions, refer to the **Installation Guide** [here](docs/Installation.pdf).
 
-A detailed **Step-by-Step Tutorial** can be found [here](docs/Step-by-Step.pdf).
+<img src="https://img.icons8.com/ios-filled/20/000000/tutorial.png" alt="Tutorial Icon" /> A detailed **Step-by-Step Tutorial** can be found [here](docs/Step-by-Step.pdf).
 
