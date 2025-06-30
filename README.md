@@ -1,8 +1,15 @@
 # WQEye
 
+![Python Version](https://img.shields.io/badge/Python-3.12%2B-blue.svg)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Status](https://img.shields.io/badge/Status-Stable-success)
+![GEE Required](https://img.shields.io/badge/RS%20Sampling-GEE%20Required-orange)
+
 ## 1. System Requirements and Compatibility
 
-WQEye is developed entirely in **Python**, making it cross-platform and compatible with major operating systems, including **Windows**, **macOS**, and **Linux distributions** such as Ubuntu. WQEye includes six modules. All modules, except RS Sampling, run locally on the user's computer, while RS Sampling relies on Google Earth Engine for processing. Machine learning models implemented in WQEye run on the user's computer **CPU by default**. This was done to make the software accessible to a broad range of users. However, if a **CUDA-capable GPU** is available on the system, the software will automatically use it to accelerate processing for ANNs and KANs. So, WQEye is not dependent on hardware-specific features such as GPUs and is designed to function efficiently on both basic and advanced computer configurations.
+WQEye is developed entirely in **Python**, making it cross-platform and compatible with major operating systems, including **Windows**, **macOS**, and **Linux distributions** such as Ubuntu. 
+The software includes six modules. All modules, except RS Sampling, run locally on the user's computer, while RS Sampling relies on Google Earth Engine for processing. Machine learning models implemented in WQEye run on the user's computer **CPU by default**. This was done to make the software accessible to a broad range of users. However, if a **CUDA-capable GPU** is available on the system, the software will automatically use it to accelerate processing for ANNs and KANs. So, WQEye is not dependent on hardware-specific features such as GPUs and is designed to function efficiently on both basic and advanced computer configurations.
 
 > **Note:** An active internet connection is required to access the **Google Earth Engine (GEE)** in the **RS Sampling Module**.
 
