@@ -24,9 +24,9 @@
 
 ### 📁 Getting Started with Sample Data (Input Data Format)
 
-A sample dataset is included with this repository ([here](example/SampleData_Turb_2stations.csv)) to help you get started with **WQEye**. 
-This dataset provides dense time series **turbidity** measurements from two in-situ USGS stations, as described in the accompanying paper.
-It allows you to run the software, test its functionalities, and follow the tutorial, even if you don't have your own data yet. You can also prepare your own in-situ measurmeent data based on the format provided. 
+Two sample datasets are included with this repository ([here](example/)) to help you get started with **WQEye**. 
+These datasets provides dense time series **Chl-a** and **turbidity** measurements from in-situ USGS stations in USA.
+They allow you to run the software, test its functionalities, and follow the tutorial, even if you don't have your own data yet. You can also prepare your own in-situ measurmeent data based on the format provided. 
 
 ---------------------------------------------------------------------------------------------
 
