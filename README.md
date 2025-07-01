@@ -18,6 +18,8 @@
 
 📚 A detailed **Step-by-Step Tutorial** can be found [here](docs/Step-by-Step.pdf).
 
+🔑 Before running the software, you must provide **GEE user credentials**. A full guide can be found [here](docs/GEEusercredential.pdf).
+
 ---------------------------------------------------------------------------------------------
 
 ### 📁 Getting Started with Sample Data (Input Data Format)
