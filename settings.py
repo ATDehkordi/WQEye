@@ -206,8 +206,10 @@ SENSORS_CONFIG = {
 
 def initialize_gee():
     #  initialize Google Earth Engine
-    service_account = "water-quality@waterquality-440405.iam.gserviceaccount.com"
-    credentials = ee.ServiceAccountCredentials(
-        service_account, "WQEye.json")
+
+    with open('service_account.txt', 'r') as f:
+        service_account = f.read().strip()
+    
+    credentials = ee.ServiceAccountCredentials(service_account, "WQEye.json")
     ee.Initialize(credentials)
     print("GEE authentication successfully completed")
