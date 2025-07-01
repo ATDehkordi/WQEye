@@ -208,6 +208,6 @@ def initialize_gee():
     #  initialize Google Earth Engine
     service_account = "water-quality@waterquality-440405.iam.gserviceaccount.com"
     credentials = ee.ServiceAccountCredentials(
-        service_account, "waterquality.json")
+        service_account, "WQEye.json")
     ee.Initialize(credentials)
     print("GEE authentication successfully completed")
