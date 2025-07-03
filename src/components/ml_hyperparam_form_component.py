@@ -1,13 +1,14 @@
 # src/components/ml_hyperparam_form_component.py
 
 import streamlit as st
+import pandas as pd
 from src.models.registry import ModelRegistry
 from src.config.models_config import parse_string_to_list
 from src.config.state_manager import StateManager
 
 
 
-def hyperparameter_form_ui(model_name: str, page_name: str, default_tuning: bool = True) -> tuple[dict, int, bool]:
+def hyperparameter_form_ui(model_name: str, page_name: str, default_tuning: bool = True, X_train: pd.DataFrame = None) -> tuple[dict, int, bool]:
     """Display UI for hyperparameter tuning."""
 
     param_grid = {}
@@ -29,7 +30,7 @@ def hyperparameter_form_ui(model_name: str, page_name: str, default_tuning: bool
 
         # else:
         param_definitions = model.get_param_definitions()
-        default_grid = model.get_default_param_grid()
+        default_grid = model.get_default_param_grid(X_train)
 
         custom_grid = {}
         col1, col2 = st.columns(2)

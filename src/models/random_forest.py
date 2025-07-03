@@ -116,7 +116,7 @@ class RandomForestModel(BaseMLModel):
     
 
 
-    def get_default_param_grid(self) -> dict:
+    def get_default_param_grid(self, X_train) -> dict:
         """Return the default hyperparameter grid."""
         return {
             'n_estimators': [50, 100, 200],

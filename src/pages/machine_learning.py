@@ -73,8 +73,8 @@ def show():
         
         param_grid, k_folds, submitted = hyperparameter_form_ui(model_name=model_name,
                                                                 page_name=PAGE_NAME,
-                                                                default_tuning=default_tuning
-                                                                )
+                                                                default_tuning=default_tuning,
+                                                                X_train=X_train)
         
         if submitted:
 

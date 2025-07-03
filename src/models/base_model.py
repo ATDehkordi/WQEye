@@ -28,7 +28,7 @@ class BaseMLModel(ABC):
         pass
 
     @abstractmethod
-    def get_default_param_grid(self) -> dict:
+    def get_default_param_grid(self, X_train) -> dict:
         """Return the default hyperparameter grid for the model."""
         pass
     
