@@ -1,4 +1,4 @@
-🛑 **important**: This repository contains an incomplete version of WQEye, as the corresponding paper is currently under review. The full code will be released upon acceptance. For software illustrations, please refer to [here](docs/Step-by-Step.pdf).
+🛑 **important**: The corresponding paper is currently under review. For software illustrations, please refer to [here](docs/Step-by-Step.pdf). Please cite the paper once published when using WQEye in your work.
 
 [![System Requirements](https://img.shields.io/badge/System%20Requirements-PDF%20Guide-lightgrey)](docs/SystemRequirements.pdf)
 [![Installation](https://img.shields.io/badge/Installation-PDF%20Guide-green)](docs/Installation.pdf)
