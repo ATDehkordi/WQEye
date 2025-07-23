@@ -1,3 +1,6 @@
+from datetime import date
+import json
+import pickle
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,7 +10,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.model_selection import train_test_split
 
 
-from src.services.zip_download_helper import get_download_link, get_zip_file
+from src.services.zip_download_helper import create_zip_buffer, get_download_link, get_zip_file
 from src.utils.log_scale_transform import log_scale_transform
 from src.config.state_manager import StateManager
 from settings import PARAM_OPTIONS, SENSORS_CONFIG
@@ -47,9 +50,10 @@ def show():
                     StateManager.set_page_state(PAGE_NAME, 'data_loaded', False)
                     StateManager.set_page_state(PAGE_NAME, 'matched_df', None)
             else:
+                matched_df= StateManager.get_page_state('matching', 'matched_df')
                 # Get the matched_df from the global state
-                if st.session_state.get('matched_df') is not None:
-                    matched_df = st.session_state.get('matched_df')
+                if matched_df is not None:
+                    # matched_df = st.session_state.get('matched_df')
                     StateManager.set_page_state(PAGE_NAME, 'is_custom_upload', False) # False because read from main session
                     StateManager.set_page_state(PAGE_NAME, 'data_loaded', True)
                     StateManager.set_page_state(PAGE_NAME, 'matched_df', matched_df)
@@ -87,42 +91,21 @@ def show():
         with col_config1:
             with st.container(border=False):
 
-                # selected_param_display = st.selectbox(
-                #     "Select Target Parameter", 
-                #     options=PARAM_OPTIONS,
-                #     index=0,
-                #     help="Select the water quality parameter you want to model."
-                # )
-                # internal_target_col = selected_param_display.lower()
-
-                # StateManager.set_page_state(PAGE_NAME, 'selected_param_display', selected_param_display)
-                # StateManager.set_page_state(PAGE_NAME, 'internal_target_col', internal_target_col)
-
-                # if internal_target_col not in matched_df.columns.str.lower():
-                #     st.error(
-                #         f"Error: Column '{internal_target_col}' not found in the dataset for the selected parameter. "
-                #         f"Please check your data or choose a different parameter."
-                #     )
-                #     st.stop()
 
                 is_custom_upload = StateManager.get_page_state(PAGE_NAME, 'is_custom_upload', False)
 
                 if is_custom_upload:
 
-                    selected_param_display = st.selectbox(
+                    target_column = st.selectbox(
                         "Select Target Parameter", 
                         options=PARAM_OPTIONS,
                         index=0,
                         help="Select the water quality parameter you want to model."
                     )
-                    internal_target_col = selected_param_display.lower()
 
-                    StateManager.set_page_state(PAGE_NAME, 'selected_param_display', selected_param_display)
-                    StateManager.set_page_state(PAGE_NAME, 'internal_target_col', internal_target_col)
-
-                    if internal_target_col not in matched_df.columns.str.lower():
+                    if target_column not in matched_df:
                         st.error(
-                            f"Error: Column '{internal_target_col}' not found in the dataset for the selected parameter. "
+                            f"Error: Column '{target_column}' not found in the dataset for the selected parameter. "
                             f"Please check your data or choose a different parameter."
                         )
                         st.stop()
@@ -134,15 +117,19 @@ def show():
                         index=0
                     )
                     StateManager.set_page_state(PAGE_NAME, 'sensor', selected_sensor)
-
+                    StateManager.set_page_state(PAGE_NAME, 'target_column', target_column)
                 else:
                     # sensor_from_session = st.session_state.get("sensor", "S2")
+                    target_column = StateManager.get_page_state('data_loader', 'water_quality_param')
                     sensor_from_session = StateManager.get_page_state('rs_sampling', 'sensor')
-                    # wq_from_session = st.session_state.get("water_quality_param", "turbidity")
-                    wq_from_session = StateManager.get_page_state('init_data', 'water_quality_param')
-
+                    
                     StateManager.set_page_state(PAGE_NAME, 'sensor', sensor_from_session)
-                    StateManager.set_page_state(PAGE_NAME, 'internal_target_col', wq_from_session)
+                    StateManager.set_page_state(PAGE_NAME, 'target_column', target_column)
+                    # wq_from_session = st.session_state.get("water_quality_param", "turbidity")
+                    # wq_from_session = StateManager.get_page_state('data_loader', 'water_quality_param')
+
+                    # st.write(target_column)
+                    # StateManager.set_page_state(PAGE_NAME, 'internal_target_col', wq_from_session)
 
 
                 sensor = StateManager.get_page_state(PAGE_NAME, 'sensor')
@@ -153,7 +140,7 @@ def show():
                             default= band_columns[:3]
                         )
                 StateManager.set_page_state(PAGE_NAME, 'selected_features', selected_features)
-
+        # st.write(matched_df)
         with col_config2:
             with st.container(border=False):
                 
@@ -161,8 +148,6 @@ def show():
                     "Select Scaling Method",
                     options=["LogScale"],
                     index=["LogScale"].index(StateManager.get_page_state(PAGE_NAME, 'scaler_name', 'LogScale'))
-                    # options=["LogScale", "StandardScaler", "MinMaxScaler"],
-                    # index=["LogScale", "StandardScaler", "MinMaxScaler"].index(StateManager.get_page_state(PAGE_NAME, 'scaler_name', 'LogScale'))
                 )
                 StateManager.set_page_state(PAGE_NAME, 'scaler_name', scaler_name)
                 
@@ -175,28 +160,18 @@ def show():
 
 
         with st.container(border=False):
-            if is_custom_upload:
-                target_col = internal_target_col
-            else:
-                target_col = wq_from_session
+            target_column = StateManager.get_page_state(PAGE_NAME, 'target_column')
 
-            st.subheader(f" Distribution of Target: {target_col}")
+            # if is_custom_upload:
+            #     target_col = internal_target_col
+            # else:
+            #     target_col = wq_from_session
+            
+            # # st.write(matched_df)
 
-            # min_val, max_val = int(matched_df[internal_target_col].min()), int(matched_df[internal_target_col].max())
-            
-            # selected_range = st.slider(
-            #     "Filter Target Variable Range",
+            st.subheader(f" Distribution of Target: {target_column}")
 
-            #     min_value=min_val,
-            #     max_value=max_val,
-            #     value=(min_val, max_val)
-            # )
-            # StateManager.set_page_state(PAGE_NAME, 'target_range', selected_range)
-            
-            # filtered_df = matched_df[(matched_df[internal_target_col] >= selected_range[0]) & (matched_df[internal_target_col] <= selected_range[1])]
-            # StateManager.set_page_state(PAGE_NAME, 'filtered_df', filtered_df)
-            
-            fig = px.histogram(matched_df, x=target_col, nbins=50, color_discrete_sequence=["#009688"])
+            fig = px.histogram(matched_df, x=target_column, nbins=50, color_discrete_sequence=["#009688"])
             st.plotly_chart(fig, use_container_width=True)
 
 
@@ -209,7 +184,8 @@ def show():
         st.header("Apply Preprocessing and Get Your Datasets")
         
         # Retrieve all settings from page state for review
-        target_col = StateManager.get_page_state(PAGE_NAME, 'internal_target_col')
+        # target_col = StateManager.get_page_state(PAGE_NAME, 'internal_target_col')
+        target_column = StateManager.get_page_state(PAGE_NAME, 'target_column')
         selected_features = StateManager.get_page_state(PAGE_NAME, 'selected_features')
         scaler_name = StateManager.get_page_state(PAGE_NAME, 'scaler_name')
         test_size = StateManager.get_page_state(PAGE_NAME, 'test_size')
@@ -240,7 +216,7 @@ def show():
             st.stop()
         
         with st.expander("**Review Your Configuration**", expanded=True):
-            st.write(f"- **Target Variable:** `{target_col}`")
+            st.write(f"- **Target Variable:** `{target_column}`")
             st.write(f"- **Feature Bands ({len(selected_features)}):** `{', '.join(selected_features)}`")
             st.write(f"- **Scaling Method:** `{scaler_name}`")
             st.write(f"- **Test/Train Split:** `{test_size*100:.0f}% / {(1-test_size)*100:.0f}%`")
@@ -257,7 +233,7 @@ def show():
 
 
             x = filtered_df[selected_features].values
-            y = filtered_df[target_col].values
+            y = filtered_df[target_column].values
             
             x_rescaled, y_rescaled, scalers, extras = apply_scaling(x, y, scaler_name, site_number, dates, satellite)
                 
@@ -286,7 +262,40 @@ def show():
             StateManager.set_page_state(PAGE_NAME, 'test_idx', test_idx)
             StateManager.set_page_state(PAGE_NAME, 'scalers', scalers)
 
-            zip_buffer  = get_zip_file(train_df, test_df, _scalers_and_transformers=scalers)
-            download_link = get_download_link(zip_buffer.getvalue(), "modeling_data.zip")
+            sensor_name = StateManager.get_page_state(PAGE_NAME, 'sensor', 'sensor')
+            # selected_param_display = StateManager.get_page_state(PAGE_NAME,'selected_param_display')
+            test_size_str = f"{int(test_size * 100)}testsize"
+            today_str = date.today().strftime('%Y%m%d')
 
+            # example: 250705_s2_turbidity_30testsize_modeling_data.zip
+            param_safe = str(target_column).replace(" ", "_").lower()
+            filename = f"{today_str}_{sensor_name}_{param_safe}_{test_size_str}_modeling_data.zip"
+            # filename = f"{today_str}_{sensor_name}_{target_column.replace(" ", "_")}_{test_size_str}_modeling_data.zip"
+
+            metadata = {
+                "sensor":sensor_name,
+                "target_variable": target_column,
+                "selected_features": selected_features,
+                "scaling_method": scaler_name,
+                "test_train_split": f"{test_size*100:.0f}% test / {(1-test_size)*100:.0f}% train",
+                "data_points_after_filtering": len(filtered_df)
+            }
+            # convert dictionary to a formatted json string, then to bytes
+            metadata_bytes = json.dumps(metadata, indent=4).encode("utf-8")
+
+            files_for_zip = {
+                "train_data.csv": train_df.to_csv(index=False).encode("utf-8"),
+                "test_data.csv": test_df.to_csv(index=False).encode("utf-8"),
+                "scalers.pkl": pickle.dumps(scalers),
+                "metadata.json": metadata_bytes  # add the new metadata file
+            }
+            # zip_buffer  = get_zip_file(train_df, test_df, _scalers_and_transformers=scalers)
+            # download_link = get_download_link(zip_buffer.getvalue(), "modeling_data.zip")
+
+            zip_buffer = create_zip_buffer(files_for_zip)
+            download_link = get_download_link(
+                zip_buffer.getvalue(), 
+                filename, 
+                "download modeling data"
+            )
             st.markdown(download_link, unsafe_allow_html=True)

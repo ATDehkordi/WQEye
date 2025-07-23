@@ -13,17 +13,17 @@ class StateManager:
     def initialize():
         """Initialize default session state variables."""
         # st.session_state.setdefault("water_quality_param", "turbidity")
-        st.session_state.setdefault("insitu_data", None)
-        st.session_state.setdefault("region", None)
-        st.session_state.setdefault("station_list", None)
-        st.session_state.setdefault("selected_stations_detail", None)
-        st.session_state.setdefault("date_range", (date(2013, 1, 1), date.today()))
+        # st.session_state.setdefault("insitu_data", None)
+        # st.session_state.setdefault("region", None)
+        # st.session_state.setdefault("station_list", None)
+        # st.session_state.setdefault("selected_stations_detail", None)
+        # st.session_state.setdefault("date_range", (date(2013, 1, 1), date.today()))
         st.session_state.setdefault("page_states", {})
-        st.session_state.setdefault("usgs_download_data", None)
-        st.session_state.setdefault("usgs_zip_buffer", b"")
-        st.session_state.setdefault("usgs_download_ready", False)
-        st.session_state.setdefault("insitu_data_source", None)
-        st.session_state.setdefault("sensor", None)
+        # st.session_state.setdefault("usgs_download_data", None)
+        # st.session_state.setdefault("usgs_zip_buffer", b"")
+        # st.session_state.setdefault("usgs_download_ready", False)
+        # st.session_state.setdefault("insitu_data_source", None)
+        # st.session_state.setdefault("sensor", None)
 
     @staticmethod
     def get_model_config(model_name: str) -> Optional[dict]:
@@ -50,7 +50,7 @@ class StateManager:
             # Remove duplicates
             df = df.drop_duplicates()
             st.session_state["insitu_data"] = df
-            st.success("In-situ data saved successfully!")
+            # st.success("In-situ data saved successfully!")
             return True
         return False
 

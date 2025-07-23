@@ -13,7 +13,6 @@ def show():
 
     # Set the page title with custom styling
     st.markdown("<h1 style='text-align: center; color: #4B5EAA;'>Remote Sensing Data Overview</h1>", unsafe_allow_html=True)
-    # st.session_state['sensor'] = None if 'sensor' not in st.session_state else st.session_state['sensor']
 
     # Check if in-situ data exists
     insitu_data = StateManager.get_insitu_data()
@@ -25,8 +24,7 @@ def show():
         )
         return
 
-    # Retrieve the in-situ data from session state
-    # temp_df = st.session_state['insitu_data']
+
     # --- Display Data Summary Expander ---
     temp_df = insitu_data.copy()
     temp_df['datetime_utc'] = pd.to_datetime(temp_df['datetime_utc'], errors='coerce')
@@ -53,7 +51,7 @@ def show():
         sensor_options = list(SENSORS_CONFIG.keys())
         
         # Step 1: Get the previously selected sensor from state, default to the first option
-        stored_sensor = StateManager.get_page_state(PAGE_NAME, "sensor", sensor_options[0])
+        stored_sensor = StateManager.get_page_state(PAGE_NAME, "sensor")
         
         # Step 2: Find the index of the stored sensor for the radio button
         try:
@@ -79,7 +77,7 @@ def show():
             label="Global Cloud Coverage (%)",
             min_value=0,
             max_value=100,
-            value=20,
+            value=StateManager.get_page_state(PAGE_NAME, "cloud_coverage", 20),
             step=1,
             format="%d%%",
             help="Specify the maximum allowed cloud coverage percentage for the satellite images."
@@ -91,7 +89,7 @@ def show():
             label="Buffer Distance (m)",
             min_value=0,
             max_value=10000,
-            value=250,
+            value=StateManager.get_page_state(PAGE_NAME, "buffer_distance", 250),
             step=50,
             help="Specify the buffer distance in meters around the point of interest."
         )
@@ -106,7 +104,8 @@ def show():
         return  # Stop execution until a sensor is chosen
 
     # Display station editor if selected_stations_detail exists
-    selected_stations = st.session_state.get("selected_stations_detail")
+    # selected_stations = st.session_state.get("selected_stations_detail")
+    selected_stations = StateManager.get_page_state("data_loader", "selected_stations_detail")
     if selected_stations is not None and not selected_stations.empty:
         station_editor_result = station_editor()
     else:
@@ -152,6 +151,5 @@ def show():
 
         status.update(label="All stations processed successfully", state="complete")
 
-        st.session_state['rs_collections_by_site'] = coll_dict
-
+        StateManager.set_page_state(PAGE_NAME, "rs_collections_by_site", coll_dict)
     

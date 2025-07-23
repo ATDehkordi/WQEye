@@ -6,7 +6,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 STATION_LIST_API_URL = "https://waterservices.usgs.gov/nwis/site/"
 DATA_AVAILABLE_API_URL = "https://nwis.waterservices.usgs.gov/nwis/iv/"
-
+ENABLE_USGS_FETCHER = False
 
 PARAMETER_METADATA = {
     "63680": {"SRSName": "turbidity", "parm_unit": "FNU",
@@ -34,33 +34,33 @@ PARAMETER_METADATA = {
               "description": "pH, water, unfiltered, field, standard units"
               },
     "1": {"SRSName": "TSS", "parm_unit": "mg/L",
-              "abbr": "TSS",
-              "description": "total suspended sediments"
-              },
+          "abbr": "TSS",
+          "description": "total suspended sediments"
+          },
     "2": {"SRSName": "CDOM", "parm_unit": "mg/L",
-              "abbr": "CDOM",
-              "description": "colored dissolved organic matters"
-              },
+          "abbr": "CDOM",
+          "description": "colored dissolved organic matters"
+          },
     "3": {"SRSName": "SDD", "parm_unit": "mg/L",
-              "abbr": "SDD",
-              "description": "secchi disk depth"
-              },
+          "abbr": "SDD",
+          "description": "secchi disk depth"
+          },
     "4": {"SRSName": "TP", "parm_unit": "mg/L",
-              "abbr": "TP",
-              "description": "total phosphorus"
-              },
+          "abbr": "TP",
+          "description": "total phosphorus"
+          },
     "5": {"SRSName": "TN", "parm_unit": "mg/L",
-              "abbr": "TN",
-              "description": "total nitrogen"
-              },
+          "abbr": "TN",
+          "description": "total nitrogen"
+          },
     "6": {"SRSName": "BOD", "parm_unit": "mg/L",
-              "abbr": "BOD",
-              "description": "biochemical oxygen demand"
-              },
+          "abbr": "BOD",
+          "description": "biochemical oxygen demand"
+          },
     "7": {"SRSName": "COD", "parm_unit": "mg/L",
-              "abbr": "COD",
-              "description": "chemical oxygen demand"
-              }
+          "abbr": "COD",
+          "description": "chemical oxygen demand"
+          }
 }
 
 
@@ -180,26 +180,51 @@ sensor_band_dict = {
 }
 
 
+def applyscale_S2(image):
+    scaled_image = image.multiply(0.0001)
+    return scaled_image.copyProperties(image, image.propertyNames())
+
+
+def applyscale_L89(image):
+    opticalBands = image.select('SR_B.*').multiply(0.0000275).add(-0.2)
+    thermalBands = image.select('ST_B.*').multiply(0.00341802).add(149.0)
+    return image.addBands(opticalBands, None, True) \
+                .addBands(thermalBands, None, True) \
+                .copyProperties(image, image.propertyNames())
+
 SENSORS_CONFIG = {
     "S2": {
         "name": "Sentinel-2",
-        "icon": "",
-        "bands": ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12']
+        'icon':"",
+        "collection": "COPERNICUS/S2_SR_HARMONIZED",
+        "cloud_property": "CLOUD_COVERAGE_ASSESSMENT",
+        "bands": ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12'],
+        'vis_params': {'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.3},
+        'unique_properties': ['MGRS_TILE'],
+        'scale_function': applyscale_S2
+
     },
     "L8": {
         "name": "Landsat-8",
-        "icon": "",
-        "bands": ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7']
+        'icon':"",
+        "collection": "LANDSAT/LC08/C02/T1_L2",
+        "cloud_property": "CLOUD_COVER",
+        "bands": ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'],
+        'vis_params': {'bands': ['SR_B4', 'SR_B3', 'SR_B2'], 'min': 0.0, 'max': 0.3},
+        'unique_properties': ['WRS_PATH', 'WRS_ROW'],
+        'scale_function': applyscale_L89
+
     },
     "L9": {
         "name": "Landsat-9",
-        "icon": "",
-        "bands": ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7']
-    },
-    "L89": {
-        "name": "Landsat 8 & 9",
-        "icon": "",
-        "bands": ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7']
+        'icon':"",
+        "collection": "LANDSAT/LC09/C02/T1_L2",
+        "cloud_property": "CLOUD_COVER",
+        "bands": ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'],
+        'vis_params': {'bands': ['SR_B4', 'SR_B3', 'SR_B2'], 'min': 0.0, 'max': 0.3},
+        'unique_properties': ['WRS_PATH', 'WRS_ROW'],
+        'scale_function': applyscale_L89
+
     }
 }
 

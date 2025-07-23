@@ -26,7 +26,7 @@ def cache_download_usgs_data(site_no, date_range, parameter_code):
     return usgs.download_usgs_data(site_no=site_no, date_range=date_range, parameter_code=parameter_code)
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=86400,show_spinner=False)
 def cache_rs_dataprepration(station_point, date_range, collection_name, buffer_distance, parameter_code, site_no):
     """
     

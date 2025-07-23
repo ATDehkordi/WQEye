@@ -39,3 +39,25 @@ def check_zip_contents(zip_file) -> tuple[bool, dict | None, str | None]:
         return False, None, "Uploaded file is not a valid ZIP file."
     except Exception as e:
         return False, None, f"Error while reading ZIP file: {str(e)}"
+
+
+def check_and_extract_zip_contents(zip_file, required_files: set) -> tuple[bool, dict[str, io.BytesIO] | None, str | None]:
+    try:
+        with zipfile.ZipFile(zip_file) as z:
+            zip_contents = set(z.namelist())
+            print('--------------------------------')
+
+            if not required_files.issubset(zip_contents):
+                missing = required_files - zip_contents
+                return False, None, f"Missing required files in ZIP: {', '.join(missing)}"
+            
+            extracted_files = {}
+            for filename in required_files:
+                file_bytes = z.read(filename)
+                extracted_files[filename] = io.BytesIO(file_bytes)
+            return True, extracted_files, None
+    
+    except zipfile.BadZipFile:
+        return False, None, "Uploaded file is not a valid ZIP file."
+    except Exception as e:
+        return False, None, f"Error while reading ZIP file: {str(e)}"

@@ -59,4 +59,5 @@ def render_map(csv_path=None, default_location=[39.8283, -98.5795], zoom=4):
         }
     ).add_to(m)
 
-    return st_folium(m, width="100%", height=500)
+    # return st_folium(m, width="100%", height=500)
+    return m

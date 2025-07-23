@@ -4,7 +4,7 @@ from datetime import date
 from settings import PARAM_OPTIONS
 from src.config.state_manager import StateManager
 
-def parameter_selector():
+def parameter_selector(page_name: str):
     """Display and manage Water Quality Parameter and Date Range selection."""
 
     col1, col2 = st.columns([1, 1])
@@ -13,7 +13,7 @@ def parameter_selector():
         # Step 1: Get the currently stored parameter value from the state manager.
         # If nothing is stored, default to the first option in the list.
         default_value = PARAM_OPTIONS[0]
-        stored_param = StateManager.get_page_state('init_data', 'water_quality_param', default_value)
+        stored_param = StateManager.get_page_state(page_name, 'water_quality_param', default_value)
 
         # Step 2: Find the index of the stored parameter.
         # This is crucial because the 'index' parameter of selectbox needs an integer.
@@ -34,7 +34,7 @@ def parameter_selector():
 
         # Step 4: Save the user's current selection back to the state manager.
         # This ensures that if the user changes the value, it gets saved for the next run.
-        StateManager.set_page_state('init_data', 'water_quality_param', water_quality_param)
+        StateManager.set_page_state(page_name, 'water_quality_param', water_quality_param)
 
     # with col2:
     #     date_range = st.date_input(

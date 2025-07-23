@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 
+from src.config.state_manager import StateManager
+
 
 def station_editor():
     """
@@ -15,8 +17,8 @@ def station_editor():
     #     return
 
     # Create a copy of the session state DataFrame to avoid modifying the original
-    df = st.session_state["selected_stations_detail"].copy()
-
+    # df = st.session_state["selected_stations_detail"].copy()
+    df = StateManager.get_page_state("data_loader", "selected_stations_detail")
     with st.popover(f"Stations to use further: {len(df)}"):
         updated_rows = []
         at_least_one_selected = False

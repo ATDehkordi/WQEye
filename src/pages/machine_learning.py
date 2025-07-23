@@ -1,6 +1,10 @@
 # src/pages/machine_learning.py
+import base64
+import io
+import json
 import pickle
-from src.models.random_forest import RandomForestModel
+
+import joblib
 import streamlit as st
 import time
 from datetime import datetime
@@ -9,6 +13,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+from src.services.zip_download_helper import create_zip_buffer, get_download_link
 from src.components.ml_hyperparam_rf_component import rfr_tuning_ui
 from src.components.ml_hyperparam_form_component import hyperparameter_form_ui
 from src.config.state_manager import StateManager
@@ -215,54 +220,119 @@ def show():
                 )
 
                 st.plotly_chart(fig, use_container_width=True)
-    # == TAB 4: Save Model =========================================================
+    # == tab 4: save model =========================================================
     with tab4:
-        st.subheader("Download Your Trained Model")
-        
-        # --- NEW, ROBUST DOWNLOAD LOGIC ---
+
+        # --- get all necessary artifacts from the state manager ---
         trained_model = StateManager.get_page_state(PAGE_NAME, 'trained_model_object')
+        eval_results = StateManager.get_page_state(PAGE_NAME, 'evaluation_results', 'None')
+        best_params=StateManager.get_page_state(PAGE_NAME, 'best_params','None')
+
         if not trained_model:
             st.warning(
-                "No trained model found. Please go to the **'Train & Evaluate'** tab and click "
-                "'Train Model with Best Parameters' first."
+                "no trained model found. please train a model in the previous tab first."
             )
-            st.stop()
-
-        # A container to manage the download UI state
-        download_container = st.container(border=True)
-        
-        # Use a state variable to track if the download file is prepared
-        is_ready = StateManager.get_page_state(PAGE_NAME, 'download_ready', False)
-
-        def set_download_ready():
-            StateManager.set_page_state(PAGE_NAME, 'download_ready', True)
-
-        def reset_download_ready():
-            StateManager.set_page_state(PAGE_NAME, 'download_ready', False)
-
-        # If the file is not yet prepared, show the "Prepare" button
-        if not is_ready:
-            download_container.info("The trained model is available. Click the button below to prepare the file for download.")
-            download_container.button(
-                "Prepare Model for Download",
-                on_click=set_download_ready,
-                use_container_width=True,
-                type="primary"
-            )
-        # If the file is prepared, show the "Download" button
         else:
-            with st.spinner("Serializing model..."):
-                model_bytes = pickle.dumps(trained_model)
-                trained_model_name = trained_model.name
-            
-            download_container.success("Your model file is ready!")
-            download_container.download_button(
-                label="📥 Download Model (.pkl)",
-                data=model_bytes,
-                file_name=f"{trained_model_name.replace(' ', '_').lower()}_model.pkl",
-                mime="application/octet-stream",
-                use_container_width=True,
-                on_click=reset_download_ready # Reset the state after download to allow another go
-            )
-            download_container.info("Clicking the download button will reset this section. You can prepare the file again if needed.")
+            full_metadata = {
+                "model_name": best_params.get("model_name", "unknown"),
+                "features_used": features,
+                "best_hyperparameters": best_params.get("parameters", {}),
+                "tuning_summary": {
+                    "validation_mape": best_params.get("val_mape"),
+                    "validation_r2": best_params.get("val_r2"),
+                    "tuning_duration_seconds": best_params.get("tuning_duration_seconds")
+                },
+                "final_evaluation_on_test_set": {
+                    "test_mape": eval_results.get("test_mape"),
+                    "test_r2": eval_results.get("test_r2"),
+                    "training_duration_seconds": eval_results.get("training_duration_seconds")
+                }
+            }
 
+            metadata_bytes = json.dumps(full_metadata, indent=4).encode('utf-8')
+
+            files_for_zip = {
+                "model.pkl": pickle.dumps(trained_model),
+                "metadata.json": metadata_bytes,
+                "scalers.pkl": pickle.dumps(scalers)
+            }
+            # zip_buffer  = get_zip_file(train_df, test_df, _scalers_and_transformers=scalers)
+            # download_link = get_download_link(zip_buffer.getvalue(), "modeling_data.zip")
+            
+            file_name = f"{best_params.get("model_name", "unknown").replace(' ', '_').lower()}_package.zip"
+
+            zip_buffer = create_zip_buffer(files_for_zip)
+            download_link = get_download_link(
+                zip_buffer.getvalue(), 
+                file_name, 
+                "download modeling data"
+            )
+            st.markdown(download_link, unsafe_allow_html=True)
+
+
+
+        #     def download_model(model):
+        #         output_model = pickle.dumps(model)
+        #         b64 = base64.b64encode(output_model).decode()
+        #         href = f'<a href="data:file/output_model;base64,{b64}">Download Trained Model .pkl File</a> '
+        #         st.markdown(href, unsafe_allow_html=True)
+            
+        #     download_model(trained_model)
+            # st.download_button(
+            #     label="📥 Download Trained Model (.pkl)",
+            #     data=pickle.dumps(trained_model),
+            #     file_name="trained_model.pkl",
+            #     mime="application/octet-stream",
+            #     use_container_width=True
+            # )
+    # # # == TAB 4: Save Model =========================================================
+    # with tab4:
+    #     st.subheader("Download Your Trained Model")
+        
+    #     # --- NEW, ROBUST DOWNLOAD LOGIC ---
+    #     trained_model = StateManager.get_page_state(PAGE_NAME, 'trained_model_object')
+    #     if not trained_model:
+    #         st.warning(
+    #             "No trained model found. Please go to the **'Train & Evaluate'** tab and click "
+    #             "'Train Model with Best Parameters' first."
+    #         )
+    #         st.stop()
+
+        # # A container to manage the download UI state 
+        # download_container = st.container(border=True)
+        
+        # # Use a state variable to track if the download file is prepared
+        # is_ready = StateManager.get_page_state(PAGE_NAME, 'download_ready', False)
+
+        # def set_download_ready():
+        #     StateManager.set_page_state(PAGE_NAME, 'download_ready', True)
+
+        # def reset_download_ready():
+        #     StateManager.set_page_state(PAGE_NAME, 'download_ready', False)
+
+        # # If the file is not yet prepared, show the "Prepare" button
+        # if not is_ready:
+        #     download_container.info("The trained model is available. Click the button below to prepare the file for download.")
+        #     download_container.button(
+        #         "Prepare Model for Download",
+        #         on_click=set_download_ready,
+        #         use_container_width=True,
+        #         type="primary"
+        #     )
+        # # If the file is prepared, show the "Download" button
+        # else:
+        #     with st.spinner("Serializing model..."):
+        #         model_bytes = pickle.dumps(trained_model)
+        #         trained_model_name = trained_model.name
+            
+        #     download_container.success("Your model file is ready!")
+        #     download_container.download_button(
+        #         label="📥 Download Model (.pkl)",
+        #         data=model_bytes,
+        #         file_name=f"{trained_model_name.replace(' ', '_').lower()}_model.pkl",
+        #         mime="application/octet-stream",
+        #         use_container_width=True,
+        #         on_click=reset_download_ready # Reset the state after download to allow another go
+        #     )
+        #     download_container.info("Clicking the download button will reset this section. You can prepare the file again if needed.")
+ 

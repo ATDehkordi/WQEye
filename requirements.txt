@@ -11,3 +11,5 @@ streamlit_folium==0.25.0
 streamlit-aggrid==1.1.4.post1
 tensorflow==2.19.0
 git+https://github.com/Blealtan/efficient-kan.git
+geopandas==1.1.1
+rasterio==1.4.3
