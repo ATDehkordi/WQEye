@@ -505,41 +505,39 @@ def render_prediction_tab(PAGE_NAME='export'):
                     roi_ee = geemap.gdf_to_ee(active_roi_gdf)
                     img_array = geemap.ee_to_numpy(final_selected_image, bands=features_used, region=roi_ee.geometry(),scale=30)
 
-                    # prepare array for prediction
                     h, w, d = img_array.shape
-                    img_reshaped = np.reshape(img_array, (-1, d))
+                    img_reshaped = img_array.reshape(-1, d)
 
-                    # find nan and zero pixels to mask out later
-                    nan_mask = np.isnan(img_reshaped).any(axis=1)
+                    # detect masked pixels (all bands == 0)
+                    masked_pixels = np.all(img_reshaped == 0, axis=1)
 
-                    # apply scaling transformations (handle potential nans)
-                    img_no_nan = np.nan_to_num(img_reshaped, nan=0) # replace nan with 0 for scaling
-                    
-                    # log transform
-                    img_scaled = np.log(img_no_nan + scalers['shift_value_X'])
-                    # robust scaler
-                    img_scaled = scalers['transformerX'].transform(img_scaled)
-                    # min-max scaler
-                    img_scaled = scalers['min_max_scalerX'].transform(img_scaled)
-                    # run prediction
-                    predictions_scaled = model.predict(pd.DataFrame(img_scaled, columns=features_used))
-                    
-                    # inverse transform the predictions
-                    predictions_original = ytest_to_initial_scale(
-                        predictions_scaled, 
-                        scalers['min_max_scalerY'], 
-                        scalers['transformerY'], 
+                    # mark them as nan
+                    img_reshaped = img_reshaped.astype(np.float32)
+                    img_reshaped[masked_pixels] = np.nan
+
+                    # now separate valid pixels
+                    valid_idx = ~masked_pixels
+                    img_valid = img_reshaped[valid_idx]
+
+                    # log + scale only valid
+                    img_valid_log = np.log(img_valid + scalers['shift_value_X'])
+                    img_valid_trans = scalers['transformerX'].transform(img_valid_log)
+                    img_valid_scaled = scalers['min_max_scalerX'].transform(img_valid_trans)
+
+                    pred_valid = model.predict(pd.DataFrame(img_valid_scaled, columns=features_used))
+                    pred_original = ytest_to_initial_scale(
+                        pred_valid,
+                        scalers['min_max_scalerY'],
+                        scalers['transformerY'],
                         scalers['shift_value_Y']
                     )
 
-                    # re-apply the nan mask
-                    predictions_original[nan_mask] = np.nan # set original nan pixels back to nan
+                    # fill prediction map
+                    pred_full = np.full(img_reshaped.shape[0], np.nan, dtype=np.float32)
+                    pred_full[valid_idx] = np.array(pred_original).flatten()
 
-                    # reshape back to image dimensions
-                    predicted_map_array = np.reshape(predictions_original, (h, w))
-
-                    st.success("Prediction completed successfully!")
-                    
+                    predicted_map_array = pred_full.reshape(h, w)
+                                        
                     # store the result for display
                     StateManager.set_page_state(PAGE_NAME, 'predicted_map_array', predicted_map_array)
                 except Exception as e:
@@ -569,7 +567,7 @@ def render_prediction_tab(PAGE_NAME='export'):
                 
                 # d. Create a new Folium map centered on the ROI
                 centroid = active_roi_gdf.geometry.centroid.iloc[0]
-                m_results = folium.Map(location=[centroid.y, centroid.x], zoom_start=11)
+                m_results = folium.Map(location=[centroid.y, centroid.x], zoom_start=11, tiles='CartoDB Positron')
 
                 # e. Add the predicted image as an overlay
                 ImageOverlay(
@@ -579,12 +577,23 @@ def render_prediction_tab(PAGE_NAME='export'):
                     name="Predicted Map"
                 ).add_to(m_results)
 
-                folium.LayerControl().add_to(m_results)
 
-                # Display the final Folium map using st_folium
+                # --- add ROI layer ---
+                if active_roi_gdf is not None and not active_roi_gdf.empty:
+                    geojson_layer = folium.GeoJson(
+                        data=active_roi_gdf,
+                        style_function=lambda x: style_roi,
+                        name="Study Area"
+                    )
+                    geojson_layer.add_to(m_results)
+
+                # add layer control
+                folium.LayerControl(collapsed=True).add_to(m_results)
+
+                # display map in streamlit
                 st_folium(
                     m_results,
-                    key="prediction_map_folium", 
+                    key="prediction_map_folium",
                     height=500,
                     width="100%",
                     returned_objects=[]
