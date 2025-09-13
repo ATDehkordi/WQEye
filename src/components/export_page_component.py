@@ -567,7 +567,7 @@ def render_prediction_tab(PAGE_NAME='export'):
                 
                 # d. Create a new Folium map centered on the ROI
                 centroid = active_roi_gdf.geometry.centroid.iloc[0]
-                m_results = folium.Map(location=[centroid.y, centroid.x], zoom_start=11)
+                m_results = folium.Map(location=[centroid.y, centroid.x], zoom_start=11, tiles='CartoDB Positron')
 
                 # e. Add the predicted image as an overlay
                 ImageOverlay(
