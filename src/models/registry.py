@@ -16,9 +16,9 @@ class ModelRegistry:
             "Random Forest": RandomForestModel(),
             "Artificial Neural Network": ANNModel(),
             "Kolmogrov-Arnold Network": KANModel(),
-            "Long Short-Term Memory (LSTM)": LSTMModel(),
-            "Gated Recurrent Unit (GRU)": GRUModel(),
-            "Recurrent Neural Network (RNN)": RNNModel()
+            # "Long Short-Term Memory (LSTM)": LSTMModel(),
+            # "Gated Recurrent Unit (GRU)": GRUModel(),
+            # "Recurrent Neural Network (RNN)": RNNModel()
         }
 
     def get_model(self, model_name: str) -> BaseMLModel:
