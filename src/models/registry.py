@@ -3,9 +3,9 @@ from src.models.base_model import BaseMLModel
 from src.models.ann import ANNModel
 from src.models.kan import KANModel
 from src.models.random_forest import RandomForestModel
-from src.models.lstm import LSTMModel
-from src.models.gru import GRUModel
-from src.models.rnn import RNNModel
+# from src.models.lstm import LSTMModel
+# from src.models.gru import GRUModel
+# from src.models.rnn import RNNModel
 
 class ModelRegistry:
     """Simple registry to manage available ML models."""
@@ -16,9 +16,9 @@ class ModelRegistry:
             "Random Forest": RandomForestModel(),
             "Artificial Neural Network": ANNModel(),
             "Kolmogrov-Arnold Network": KANModel(),
-            "Long Short-Term Memory (LSTM)": LSTMModel(),
-            "Gated Recurrent Unit (GRU)": GRUModel(),
-            "Recurrent Neural Network (RNN)": RNNModel()
+            # "Long Short-Term Memory (LSTM)": LSTMModel(),
+            # "Gated Recurrent Unit (GRU)": GRUModel(),
+            # "Recurrent Neural Network (RNN)": RNNModel()
         }
 
     def get_model(self, model_name: str) -> BaseMLModel:
