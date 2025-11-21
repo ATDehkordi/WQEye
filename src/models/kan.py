@@ -17,7 +17,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.optimizers import Adam, SGD, RMSprop
 from src.models.base_model import BaseMLModel
-from src.utils.scaling_utils import mape, r_squared, ytest_to_initial_scale
+from src.utils.scaling_utils import mape, r_squared, inverse_transform_y
 
 class KANModel(BaseMLModel):
     """Kolmogrov-Arnold Network model implementation."""
@@ -251,9 +251,10 @@ class KANModel(BaseMLModel):
 
                     y_val_pred_rescaled = torch.cat(predictions_test).numpy()
                     y_val_true_rescaled = torch.cat(truth_test).numpy()
+
+                    y_val_pred_original = np.squeeze(inverse_transform_y(y_val_pred_rescaled, scalers))
+                    y_val_true_original = np.squeeze(inverse_transform_y(y_val_true_rescaled, scalers))
                     
-                    y_val_pred_original = np.squeeze(ytest_to_initial_scale(y_val_pred_rescaled, scalers['min_max_scalerY'], scalers['transformerY'], scalers['shift_value_Y']))
-                    y_val_true_original = np.squeeze(ytest_to_initial_scale(y_val_true_rescaled, scalers['min_max_scalerY'], scalers['transformerY'], scalers['shift_value_Y']))
 
                     # Compute metrics
                     val_mape.append(mape(y_val_true_original, y_val_pred_original))
