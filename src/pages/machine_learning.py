@@ -21,8 +21,9 @@ from src.components.ml_hyperparam_ann_component import ann_tuning_ui
 from src.components.ml_data_loader_component import load_ml_data
 from src.components.ml_model_selector_component import model_selection_ui
 from src.models.registry import ModelRegistry
-from src.utils.log_scale_transform import ytest_to_initial_scale
-from src.utils.scaling_utils import mape, r_squared
+# from src.utils.log_scale_transform import ytest_to_initial_scale
+# from src.utils.scaling_utils import mape, r_squared
+from src.utils.scaling_utils import mape, r_squared, inverse_transform_y
 
 
 PAGE_NAME = "machine_learning"
@@ -146,12 +147,9 @@ def show():
 
                 # Evaluate on test set
                 y_pred = model.predict(X_test)
-                y_pred_original = np.squeeze(ytest_to_initial_scale(
-                    y_pred, scalers['min_max_scalerY'], scalers['transformerY'], scalers['shift_value_Y']
-                ))
-                y_test_original = np.squeeze(ytest_to_initial_scale(
-                    y_test, scalers['min_max_scalerY'], scalers['transformerY'], scalers['shift_value_Y']
-                ))
+
+                y_pred_original = np.squeeze(inverse_transform_y(y_pred, scalers))
+                y_test_original = np.squeeze(inverse_transform_y(y_test, scalers))
 
                 test_mape = mape(y_test_original, y_pred_original)
                 test_r2 = r_squared(y_test_original, y_pred_original)
