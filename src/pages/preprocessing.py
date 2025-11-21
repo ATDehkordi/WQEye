@@ -143,11 +143,12 @@ def show():
         # st.write(matched_df)
         with col_config2:
             with st.container(border=False):
-                
+                options = ["LogScale", "MinMaxScaler"]
+
                 scaler_name = st.selectbox(
                     "Select Scaling Method",
-                    options=["LogScale"],
-                    index=["LogScale"].index(StateManager.get_page_state(PAGE_NAME, 'scaler_name', 'LogScale'))
+                    options=options,
+                    index=options.index(StateManager.get_page_state(PAGE_NAME, 'scaler_name', 'LogScale'))
                 )
                 StateManager.set_page_state(PAGE_NAME, 'scaler_name', scaler_name)
                 
