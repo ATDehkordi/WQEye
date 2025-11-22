@@ -27,6 +27,11 @@ from src.utils.scaling_utils import inverse_transform_y
 from src.utils.evaluation import evaluate_on_test_set
 from src.utils.metrics import METRICS_REGISTRY
 
+import shap
+import matplotlib.pyplot as plt
+from src.utils.shap_utils import compute_shap_values
+
+
 PAGE_NAME = "machine_learning"
 
 def show():
@@ -280,6 +285,23 @@ def show():
                 )
 
                 st.plotly_chart(fig, use_container_width=True)
+
+            # with st.expander("SHAP feature importance (per feature)"):
+            with st.spinner("SHAP feature importance (per feature)"):
+
+                X_shap, shap_values = compute_shap_values(model, X_train, X_test)
+
+                shap.initjs()
+                # smaller plot 1
+                # fig1 = plt.figure(figsize=(6, 4))   # smaller width & height
+                # shap.summary_plot(shap_values, X_shap, show=False)
+                # st.pyplot(fig1)
+
+                # smaller plot 2 (violin)
+                fig2 = plt.figure(figsize=(6, 4))   # smaller width & height
+                shap.summary_plot(shap_values, X_shap, plot_type="bar", show=True, title='SHAP Value')
+                st.pyplot(fig2)
+
     # == tab 4: save model =========================================================
     with tab4:
 
