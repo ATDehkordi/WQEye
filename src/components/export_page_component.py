@@ -26,7 +26,8 @@ from settings import SENSORS_CONFIG
 from src.config.state_manager import StateManager
 from src.utils.functions import uploaded_file_to_gdf
 from src.utils.zip_checker import check_and_extract_zip_contents
-from src.utils.log_scale_transform import ytest_to_initial_scale
+# from src.utils.log_scale_transform import ytest_to_initial_scale
+from src.utils.scaling_utils import inverse_transform_y
 
 
 CENTER_START = [39.949610, -75.150282]
@@ -520,17 +521,16 @@ def render_prediction_tab(PAGE_NAME='export'):
                     img_valid = img_reshaped[valid_idx]
 
                     # log + scale only valid
-                    img_valid_log = np.log(img_valid + scalers['shift_value_X'])
-                    img_valid_trans = scalers['transformerX'].transform(img_valid_log)
-                    img_valid_scaled = scalers['min_max_scalerX'].transform(img_valid_trans)
+                    if 'shift_value_X' in scalers and 'transformerX' in scalers:
+                        img_valid_log = np.log(img_valid + scalers['shift_value_X'])
+                        img_valid_trans = scalers['transformerX'].transform(img_valid_log)
+                        img_valid_scaled = scalers['min_max_scalerX'].transform(img_valid_trans)
+                    else:
+                        img_valid_scaled = scalers['min_max_scalerX'].transform(img_valid)
 
                     pred_valid = model.predict(pd.DataFrame(img_valid_scaled, columns=features_used))
-                    pred_original = ytest_to_initial_scale(
-                        pred_valid,
-                        scalers['min_max_scalerY'],
-                        scalers['transformerY'],
-                        scalers['shift_value_Y']
-                    )
+
+                    pred_original = inverse_transform_y(pred_valid, scalers)
 
                     # fill prediction map
                     pred_full = np.full(img_reshaped.shape[0], np.nan, dtype=np.float32)

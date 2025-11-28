@@ -17,7 +17,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.optimizers import Adam, SGD, RMSprop
 from src.models.base_model import BaseMLModel
-from src.utils.scaling_utils import mape, r_squared, ytest_to_initial_scale
+from src.utils.scaling_utils import mape, r_squared, inverse_transform_y
 
 class KANModel(BaseMLModel):
     """Kolmogrov-Arnold Network model implementation."""
@@ -84,7 +84,7 @@ class KANModel(BaseMLModel):
             # model = KAN([input_size, *hidden_layer_size, 1], spline_order=spline_order)
         
         self.model.to(self.device)
-        weight_decay = 0
+        weight_decay = params.get('weight_decay_value', 0)
         optimizer = optim.AdamW(self.model.parameters(), lr=params.get('lr'), weight_decay=weight_decay)
         # optimizer = optim.AdamW(self.model.parameters(), lr=params.get('lr'), weight_decay=params.get('weight_decay'))
         points_param = 0
@@ -220,7 +220,7 @@ class KANModel(BaseMLModel):
                 
                 num_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
                          
-                weight_decay = 0
+                weight_decay = params.get('weight_decay_value', 0)
                 optimizer = optim.AdamW(self.model.parameters(), lr=params.get('lr'), weight_decay=weight_decay)
                 # optimizer = optim.AdamW(self.model.parameters(), lr=params.get('lr'), weight_decay=params.get('weight_decay'))
                 points_param = 0
@@ -251,9 +251,10 @@ class KANModel(BaseMLModel):
 
                     y_val_pred_rescaled = torch.cat(predictions_test).numpy()
                     y_val_true_rescaled = torch.cat(truth_test).numpy()
+
+                    y_val_pred_original = np.squeeze(inverse_transform_y(y_val_pred_rescaled, scalers))
+                    y_val_true_original = np.squeeze(inverse_transform_y(y_val_true_rescaled, scalers))
                     
-                    y_val_pred_original = np.squeeze(ytest_to_initial_scale(y_val_pred_rescaled, scalers['min_max_scalerY'], scalers['transformerY'], scalers['shift_value_Y']))
-                    y_val_true_original = np.squeeze(ytest_to_initial_scale(y_val_true_rescaled, scalers['min_max_scalerY'], scalers['transformerY'], scalers['shift_value_Y']))
 
                     # Compute metrics
                     val_mape.append(mape(y_val_true_original, y_val_pred_original))
@@ -290,8 +291,10 @@ class KANModel(BaseMLModel):
             "grid_size": [4],
             "spline_order": [4],
             "lr": [0.001],
-            "hidden_layer_size": f"[{X_train.shape[1] + 1}], [{2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}], [{3 * X_train.shape[1] + 1} {2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}]"
+            "hidden_layer_size": f"[{X_train.shape[1] + 1}], [{2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}], [{3 * X_train.shape[1] + 1} {2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}]",
+            'weight_decay_value': [0, 0.0001],
         }
+    
         # "hidden_layer_size": "[10], [10 10]"
         # 'hidden_layer_size': [[X_train.shape[1]], [X_train.shape[1],X_train.shape[1]]]
         
@@ -357,6 +360,13 @@ class KANModel(BaseMLModel):
                 'placeholder': 'e.g., [10], [10 20] (there is no need for , in a model but there is a need for , between different sets of params)',
                 'type': str,
                 'help': "hidden_layer_size of the network"
+            },
+            'weight_decay_value': {
+                'label': 'Weight Decay',
+                'ui_widget': 'text_list',
+                'type': float,
+                'placeholder': 'e.g., 0, 0.001, 0.0001',
+                'help': "Enter float values, separated by commas (e.g., 0.001, 0.0001). If adamw is selected, insert the values otherwise insert 0"
             }
         }
 

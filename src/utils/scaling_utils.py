@@ -1,3 +1,4 @@
+# src/utils/scaling_utils.py
 from scipy import stats
 from sklearn.preprocessing import StandardScaler, MinMaxScaler,RobustScaler
 import numpy as np
@@ -41,27 +42,47 @@ def log_scale_transform(X, Y, site_number, dates, satellites):
 
 
 def apply_scaling(x, y, scaler_name, site_number, dates, satellite):
-    if scaler_name == "StandardScaler":
-        x_scaler = StandardScaler()
-        y_scaler = StandardScaler()
-        x_rescaled = x_scaler.fit_transform(x)
-        y_rescaled = y_scaler.fit_transform(y.reshape(-1, 1)).flatten()
-        scalers = {
-            'x_scaler': x_scaler,
-            'y_scaler': y_scaler
-        }
-        extras = {}
+    # if scaler_name == "StandardScaler":
+    #     x_scaler = StandardScaler()
+    #     y_scaler = StandardScaler()
+    #     x_rescaled = x_scaler.fit_transform(x)
+    #     y_rescaled = y_scaler.fit_transform(y.reshape(-1, 1)).flatten()
+    #     scalers = {
+    #         'x_scaler': x_scaler,
+    #         'y_scaler': y_scaler
+    #     }
+    #     extras = {}
 
-    elif scaler_name == "MinMaxScaler":
-        x_scaler = MinMaxScaler()
-        y_scaler = MinMaxScaler()
-        x_rescaled = x_scaler.fit_transform(x)
-        y_rescaled = y_scaler.fit_transform(y.reshape(-1, 1)).flatten()
+    if scaler_name == "MinMaxScaler":
+
+        s1 = np.arange(x.shape[0])
+        np.random.shuffle(s1)
+        X = x[s1, :]
+        Y = y[s1]
+        
+        site_number_new = [site_number[i] for i in s1]
+        dates_new = [dates[i] for i in s1]
+        satellite_new = [satellite[i] for i in s1]
+        
+        min_max_scalerX = MinMaxScaler().fit(X)
+        x_rescaled = min_max_scalerX.transform(X)
+
+        min_max_scalerY = MinMaxScaler().fit(np.reshape(Y, (-1, 1)))
+        y_rescaled = min_max_scalerY.transform(np.reshape(Y, (-1, 1)))
+    
         scalers = {
-            'x_scaler': x_scaler,
-            'y_scaler': y_scaler
+            'method': 'MinMaxScaler',
+            'min_max_scalerX': min_max_scalerX,
+            'min_max_scalerY': min_max_scalerY
+            
         }
-        extras = {}
+        extras = {
+            'site_number': site_number_new,
+            'dates': dates_new,
+            'satellite': satellite_new,
+            's1': s1
+        }
+        return x_rescaled, y_rescaled, scalers, extras
 
     else:
         (x_rescaled, y_rescaled, transformerX, transformerY,
@@ -69,6 +90,7 @@ def apply_scaling(x, y, scaler_name, site_number, dates, satellite):
          shift_value_Y, site_number_new, dates_new, satellite_new, s1) = log_scale_transform(x, y, site_number, dates, satellite)
 
         scalers = {
+            'method': 'LogScale',
             'transformerX': transformerX,
             'transformerY': transformerY,
             'min_max_scalerX': min_max_scalerX,
@@ -85,6 +107,28 @@ def apply_scaling(x, y, scaler_name, site_number, dates, satellite):
         }
 
     return x_rescaled, y_rescaled, scalers, extras
+
+
+def inverse_transform_y(y_scaled, scalers):
+    y_scaled = np.asarray(y_scaled)
+    method = scalers.get('method', 'LogScale')
+
+    if method == 'LogScale':
+        return ytest_to_initial_scale(
+            y_scaled,
+            scalers['min_max_scalerY'],
+            scalers['transformerY'],
+            scalers['shift_value_Y'],
+        )
+
+    elif method == 'MinMaxScaler':
+        return scalers['min_max_scalerY'].inverse_transform(
+            np.reshape(y_scaled, (-1, 1))
+        )
+
+    else:
+        raise ValueError(f"Unknown scaling method: {method}")
+
 
 
 

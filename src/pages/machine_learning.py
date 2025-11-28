@@ -21,8 +21,15 @@ from src.components.ml_hyperparam_ann_component import ann_tuning_ui
 from src.components.ml_data_loader_component import load_ml_data
 from src.components.ml_model_selector_component import model_selection_ui
 from src.models.registry import ModelRegistry
-from src.utils.log_scale_transform import ytest_to_initial_scale
-from src.utils.scaling_utils import mape, r_squared
+# from src.utils.log_scale_transform import ytest_to_initial_scale
+# from src.utils.scaling_utils import mape, r_squared, inverse_transform_y
+from src.utils.scaling_utils import inverse_transform_y
+from src.utils.evaluation import evaluate_on_test_set
+from src.utils.metrics import METRICS_REGISTRY
+
+import shap
+import matplotlib.pyplot as plt
+from src.utils.shap_utils import compute_shap_values
 
 
 PAGE_NAME = "machine_learning"
@@ -144,26 +151,50 @@ def show():
                 end_time = time.time()
                 training_duration = end_time - start_time
 
-                # Evaluate on test set
-                y_pred = model.predict(X_test)
-                y_pred_original = np.squeeze(ytest_to_initial_scale(
-                    y_pred, scalers['min_max_scalerY'], scalers['transformerY'], scalers['shift_value_Y']
-                ))
-                y_test_original = np.squeeze(ytest_to_initial_scale(
-                    y_test, scalers['min_max_scalerY'], scalers['transformerY'], scalers['shift_value_Y']
-                ))
+                # # Evaluate on test set
+                # y_pred = model.predict(X_test)
 
-                test_mape = mape(y_test_original, y_pred_original)
-                test_r2 = r_squared(y_test_original, y_pred_original)
+                # y_pred_original = np.squeeze(inverse_transform_y(y_pred, scalers))
+                # y_test_original = np.squeeze(inverse_transform_y(y_test, scalers))
 
-                # Store evaluation results in StateManager
+                # test_mapebefore = mape(y_test_original, y_pred_original)
+                # test_r2_before = r_squared(y_test_original, y_pred_original)
+
+                y_test_original, y_pred_original, metrics = evaluate_on_test_set(
+                    model,
+                    X_test,
+                    y_test,
+                    scalers,
+                    metric_names=["MAPE", "R2", "RMSE", "Bias"],
+                )
+
+                test_mape = metrics["MAPE"]
+                test_r2 = metrics["R2"]
+                test_rmse = metrics["RMSE"]
+                test_bias = metrics["Bias"]
+                ks_stat = metrics["ks_stat"]
+                ks_p_value = metrics["ks_p_value"]
+                
                 evaluation_results = {
                     "model_name": model_name,
                     "test_mape": test_mape,
                     "test_r2": test_r2,
+                    "test_rmse": test_rmse,
+                    "test_bias": test_bias,
+                    "ks_stat": ks_stat,
+                    "ks_p_value": ks_p_value,
                     "training_duration_seconds": training_duration,
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 }
+
+                # # Store evaluation results in StateManager
+                # evaluation_results = {
+                #     "model_name": model_name,
+                #     "test_mape": test_mape,
+                #     "test_r2": test_r2,
+                #     "training_duration_seconds": training_duration,
+                #     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                # }
 
                 # --- CHANGE: Save the trained model object to the session state ---
                 StateManager.set_page_state(PAGE_NAME, 'trained_model_object', model)
@@ -171,17 +202,51 @@ def show():
 
                 st.success(f"Model trained successfully in {training_duration:.2f} seconds!")
 
-                # Display evaluation results
-                # st.markdown("### Test Set Performance")
-                left,right = st.columns([1,1])
+                # # Display evaluation results
+                # # st.markdown("### Test Set Performance")
+                # left,right = st.columns([1,1])
 
-                with left:
-                    st.metric("Test MAPE", f"{test_mape:.4f}")
-                with right:
-                    st.metric("Test R2", f"{test_r2:.4f}")
+                # with left:
+                #     st.metric("Test MAPE", f"{test_mape:.4f}")
+                # with right:
+                #     st.metric("Test R2", f"{test_r2:.4f}")
+
+
+                # cols = st.columns(4)
+                # metric_order = ["MAPE", "R2", "RMSE", "Bias"]
+
+                # for col, name in zip(cols, metric_order):
+                #     cfg = METRICS_REGISTRY[name]
+                #     value = metrics[name]
+                #     col.metric(cfg["label"], cfg["fmt"].format(value))
+
+                # st.write(f"KS Statistic: {ks_stat:.4f},  p-value: {ks_p_value:.4f}")
+                # ---- row 1: first 3 metrics ----
+                row1 = st.columns(3)
+                metric_names_row1 = ["MAPE", "R2", "RMSE"]
+
+                for col, name in zip(row1, metric_names_row1):
+                    cfg = METRICS_REGISTRY[name]
+                    value = metrics[name]
+                    col.metric(cfg["label"], cfg["fmt"].format(value))
+
+                # ---- row 2: remaining 1 metric + KS + p-value ----
+                row2 = st.columns(3)
+
+                # first remaining metric
+                name = "Bias"
+                cfg = METRICS_REGISTRY[name]
+                value = metrics[name]
+                row2[0].metric(cfg["label"], cfg["fmt"].format(value))
+
+                # KS Statistic
+                row2[1].metric("KS Statistic", f"{ks_stat:.4f}")
+
+                # p-value
+                row2[2].metric("KS p_value", f"{ks_p_value:.4f}")
+
 
                 # Display predictions vs actuals
-
                 results_df = pd.DataFrame({
                     "Actual": y_test_original,
                     "Predicted": y_pred_original
@@ -220,6 +285,23 @@ def show():
                 )
 
                 st.plotly_chart(fig, use_container_width=True)
+
+            # with st.expander("SHAP feature importance (per feature)"):
+            with st.spinner("SHAP feature importance (per feature)"):
+
+                X_shap, shap_values = compute_shap_values(model, X_train, X_test)
+
+                shap.initjs()
+                # smaller plot 1
+                # fig1 = plt.figure(figsize=(6, 4))   # smaller width & height
+                # shap.summary_plot(shap_values, X_shap, show=False)
+                # st.pyplot(fig1)
+
+                # smaller plot 2 (violin)
+                fig2 = plt.figure(figsize=(6, 4))   # smaller width & height
+                shap.summary_plot(shap_values, X_shap, plot_type="bar", show=True, title='SHAP Value')
+                st.pyplot(fig2)
+
     # == tab 4: save model =========================================================
     with tab4:
 
@@ -245,8 +327,13 @@ def show():
                 "final_evaluation_on_test_set": {
                     "test_mape": eval_results.get("test_mape"),
                     "test_r2": eval_results.get("test_r2"),
-                    "training_duration_seconds": eval_results.get("training_duration_seconds")
-                }
+                    "test_rmse": eval_results.get("test_rmse"),
+                    "test_bias": eval_results.get("test_bias"),
+                    "ks_stat": eval_results.get("ks_stat"),
+                    "ks_p_value": eval_results.get("ks_p_value"),
+                    "training_duration_seconds": eval_results.get("training_duration_seconds"),
+                },
+
             }
 
             metadata_bytes = json.dumps(full_metadata, indent=4).encode('utf-8')

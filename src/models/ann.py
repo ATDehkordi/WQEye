@@ -8,9 +8,9 @@ import streamlit as st
 from sklearn.model_selection import KFold, ParameterGrid
 from tensorflow import keras
 from tensorflow.keras import layers
-from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop, AdamW
 from src.models.base_model import BaseMLModel
-from src.utils.scaling_utils import mape, r_squared, ytest_to_initial_scale
+from src.utils.scaling_utils import mape, r_squared, inverse_transform_y
 
 class ANNModel(BaseMLModel):
     """Artificial Neural Network model implementation."""
@@ -61,7 +61,9 @@ class ANNModel(BaseMLModel):
             act_function_output_layers=params.get('act_function_output_layers', 'linear'),
             optimizer_name=params.get('optimizer_func', 'adam'),
             learning_rate=params.get('lr', 1e-3),
-            loss_func=params.get('loss_func', 'mean_squared_error')
+            loss_func=params.get('loss_func', 'mean_squared_error'),
+            weight_decay_value=params.get('weight_decay_value', 0),
+            dropout_rate = params.get('dropout_rate', 0)
         )
         self.model.fit(
             X_train, y_train,
@@ -145,7 +147,9 @@ class ANNModel(BaseMLModel):
                     act_function_output_layers=params.get('act_function_output_layers', 'linear'),
                     optimizer_name=params.get('optimizer_func', 'adam'),
                     learning_rate=params.get('lr', 1e-3),
-                    loss_func=params.get('loss_func', 'mean_squared_error')
+                    loss_func=params.get('loss_func', 'mean_squared_error'),
+                    weight_decay_value=params.get('weight_decay_value', 0),
+                    dropout_rate = params.get('dropout_rate', 0)
                 )
                 
                 num_params = model.count_params()
@@ -160,14 +164,9 @@ class ANNModel(BaseMLModel):
 
                 # Rescale predictions
                 y_val_pred_rescaled = model.predict(X_train.iloc[val_idx], verbose=0)
-                y_val_pred_original = np.squeeze(ytest_to_initial_scale(
-                    y_val_pred_rescaled, scalers['min_max_scalerY'], 
-                    scalers['transformerY'], scalers['shift_value_Y']
-                ))
-                y_val_true_original = np.squeeze(ytest_to_initial_scale(
-                    y_train.iloc[val_idx], scalers['min_max_scalerY'], 
-                    scalers['transformerY'], scalers['shift_value_Y']
-                ))
+
+                y_val_pred_original = np.squeeze(inverse_transform_y(y_val_pred_rescaled, scalers))
+                y_val_true_original = np.squeeze(inverse_transform_y(y_train.iloc[val_idx], scalers))
 
                 # Compute metrics
                 val_mape.append(mape(y_val_true_original, y_val_pred_original))
@@ -199,13 +198,16 @@ class ANNModel(BaseMLModel):
         """Return the default hyperparameter grid."""
         return {
             'act_function_hidden_layers': ['relu'],
-            'optimizer_func': ['adam'],
+            'optimizer_func': ['adamw'],
             'num_of_epochs': [100],
             'act_function_output_layers': ['linear'],
             'loss_func': ['mean_squared_error'],
             'batch_size': [32],
             'lr': [1e-3],
-            'hidden_layer_size': f"[{X_train.shape[1] + 1}], [{2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}], [{3 * X_train.shape[1] + 1} {2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}]"
+            'hidden_layer_size': f"[{X_train.shape[1] + 1}], [{2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}], [{3 * X_train.shape[1] + 1} {2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}]",
+            'weight_decay_value': [0, 0.0001],
+            'dropout_rate':[0, 0.1]
+    
         }
 
     def get_param_definitions(self) -> dict:
@@ -221,7 +223,7 @@ class ANNModel(BaseMLModel):
             'optimizer_func': {
                 'label': 'Optimizer',
                 'ui_widget': 'multiselect',
-                'options': ['adam', 'sgd', 'rmsprop'],
+                'options': ['adam', 'sgd', 'rmsprop', 'adamw'],
                 'type': str,
                 'help': "Select one or more optimizers."
             },
@@ -266,19 +268,38 @@ class ANNModel(BaseMLModel):
                 'placeholder': 'e.g., [10], [10 20] (there is no need for , in a model but there is a need for , between different sets of params)',
                 'type': str,
                 'help': "hidden_layer_size of the network"
-            }
+            },
+            'weight_decay_value': {
+                'label': 'Weight Decay',
+                'ui_widget': 'text_list',
+                'type': float,
+                'placeholder': 'e.g., 0, 0.001, 0.0001',
+                'help': "Enter float values, separated by commas (e.g., 0.001, 0.0001). If adamw is selected, insert the values otherwise insert 0"
+            },
+            'dropout_rate': {
+                'label': 'Dropout',
+                'ui_widget': 'text_list',
+                'type': float,
+                'placeholder': 'e.g., 0, 0.1, 0.2',
+                'help': "Enter float values, separated by commas (e.g., 0.001, 0.0001)."
+            },
+
             
         }
 
     def _build_model(self, input_shape: int, hidden_layer_size: list, 
                      act_function_hidden_layers: str, act_function_output_layers: str, 
-                     optimizer_name: str, learning_rate: float, loss_func: str) -> keras.Model:
+                     optimizer_name: str, learning_rate: float, loss_func: str, dropout_rate:float, weight_decay_value:float) -> keras.Model:
         """Build and compile the ANN model."""
         inputs = keras.Input(shape=(input_shape,))
         x = inputs
 
         for units in hidden_layer_size:
-            x = layers.Dense(units, activation=act_function_hidden_layers)(x)
+            # x = layers.Dense(units, activation=act_function_hidden_layers)(x)
+            x = layers.Dense(units, activation=None)(x)
+            x = layers.BatchNormalization()(x)
+            x = layers.Activation(act_function_hidden_layers)(x)
+            x = layers.Dropout(dropout_rate)(x)
 
         outputs = layers.Dense(1, activation=act_function_output_layers)(x)
         model = keras.Model(inputs=inputs, outputs=outputs)
@@ -286,6 +307,8 @@ class ANNModel(BaseMLModel):
         optimizer_name = optimizer_name.lower()
         if optimizer_name == 'adam':
             optimizer = Adam(learning_rate=learning_rate)
+        elif optimizer_name == 'adamw':
+            optimizer = AdamW(learning_rate = learning_rate, weight_decay = weight_decay_value)
         elif optimizer_name == 'sgd':
             optimizer = SGD(learning_rate=learning_rate)
         elif optimizer_name == 'rmsprop':
