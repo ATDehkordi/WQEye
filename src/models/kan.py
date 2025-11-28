@@ -84,7 +84,7 @@ class KANModel(BaseMLModel):
             # model = KAN([input_size, *hidden_layer_size, 1], spline_order=spline_order)
         
         self.model.to(self.device)
-        weight_decay = 0
+        weight_decay = params.get('weight_decay_value', 0)
         optimizer = optim.AdamW(self.model.parameters(), lr=params.get('lr'), weight_decay=weight_decay)
         # optimizer = optim.AdamW(self.model.parameters(), lr=params.get('lr'), weight_decay=params.get('weight_decay'))
         points_param = 0
@@ -220,7 +220,7 @@ class KANModel(BaseMLModel):
                 
                 num_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
                          
-                weight_decay = 0
+                weight_decay = params.get('weight_decay_value', 0)
                 optimizer = optim.AdamW(self.model.parameters(), lr=params.get('lr'), weight_decay=weight_decay)
                 # optimizer = optim.AdamW(self.model.parameters(), lr=params.get('lr'), weight_decay=params.get('weight_decay'))
                 points_param = 0
@@ -291,8 +291,10 @@ class KANModel(BaseMLModel):
             "grid_size": [4],
             "spline_order": [4],
             "lr": [0.001],
-            "hidden_layer_size": f"[{X_train.shape[1] + 1}], [{2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}], [{3 * X_train.shape[1] + 1} {2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}]"
+            "hidden_layer_size": f"[{X_train.shape[1] + 1}], [{2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}], [{3 * X_train.shape[1] + 1} {2 * X_train.shape[1] + 1} {X_train.shape[1] + 1}]",
+            'weight_decay_value': [0, 0.0001],
         }
+    
         # "hidden_layer_size": "[10], [10 10]"
         # 'hidden_layer_size': [[X_train.shape[1]], [X_train.shape[1],X_train.shape[1]]]
         
@@ -358,6 +360,13 @@ class KANModel(BaseMLModel):
                 'placeholder': 'e.g., [10], [10 20] (there is no need for , in a model but there is a need for , between different sets of params)',
                 'type': str,
                 'help': "hidden_layer_size of the network"
+            },
+            'weight_decay_value': {
+                'label': 'Weight Decay',
+                'ui_widget': 'text_list',
+                'type': float,
+                'placeholder': 'e.g., 0, 0.001, 0.0001',
+                'help': "Enter float values, separated by commas (e.g., 0.001, 0.0001). If adamw is selected, insert the values otherwise insert 0"
             }
         }
 
