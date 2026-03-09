@@ -1,4 +1,4 @@
-🛑 **important**: The corresponding paper is currently under review. For software illustrations, please refer to [here](docs/Step-by-Step.pdf). Please cite the paper once published when using WQEye in your work.
+🛑 **important**: Please cite this paper if you are using the codes and data provided: https://doi.org/10.1016/j.ecoinf.2026.103692
 
 [![System Requirements](https://img.shields.io/badge/System%20Requirements-PDF%20Guide-lightgrey)](docs/SystemRequirements.pdf)
 [![Installation](https://img.shields.io/badge/Installation-PDF%20Guide-green)](docs/Installation.pdf)
