@@ -14,6 +14,7 @@
   <img src="docs/Paper.png" alt="Paper" width="800" style="vertical-align:middle;">
 </p>
 ---------------------------------------------------------------------------------------------
+
 ### 📝 Software Documentation
 
 💻 **System Requirements** are fully described [here](docs/SystemRequirements.pdf).
