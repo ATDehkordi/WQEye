@@ -1,3 +1,5 @@
+> 🛑 **Important:** This software is provided for research purposes only. Any commercial use, including but not limited to commercial products, services, consulting, or internal business use, is strictly prohibited.
+
 🛑 **important**: Please cite this paper if you are using the codes and data provided: https://doi.org/10.1016/j.ecoinf.2026.103692
 
 [![System Requirements](https://img.shields.io/badge/System%20Requirements-PDF%20Guide-lightgrey)](docs/SystemRequirements.pdf)
