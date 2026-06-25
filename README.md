@@ -1,4 +1,4 @@
-> 🛑 **Important:** This software is provided for research purposes only. Any commercial use, including but not limited to commercial products, services, consulting, or internal business use, is strictly prohibited.
+⛔ **Commercial Use Prohibited**: This software is provided solely for research purposes. Any commercial use is strictly forbidden.
 
 🛑 **important**: Please cite this paper if you are using the codes and data provided: https://doi.org/10.1016/j.ecoinf.2026.103692
 
